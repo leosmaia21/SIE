@@ -27,15 +27,17 @@ int8_t Timer3Config(uint32_t TimerFrequency)
     uint32_t pr3 = 0;
 
     /*Timer T3 configuration */
-    do {
-        if (i == size_of_prescaler3)
-            return -1;
-        pr3 = (PBCLOCK / (TimerFrequency * prescaler3[i])) - 1;
-        T3CONbits.TCKPS = i;                                       /* Set prescaler3 */
-        i++;
-    } while (pr3 > UINT16_MAX);
+    //do {
+    //    if (i == size_of_prescaler3)
+    //        return -1;
+    //    pr3 = (PBCLOCK / (TimerFrequency * prescaler3[i])) - 1;
+    //    T3CONbits.TCKPS = i;                                       /* Set prescaler3 */
+    //    i++;
+    //} while (pr3 > UINT16_MAX);
     
-    PR3 = (uint16_t)pr3;
+    //PR3 = (uint16_t)pr3;
+    T3CONbits.TCKPS=6;
+    PR3=1249*5;
     TMR3 = 0;                                                      /* Reset timer */
     
     T3CONbits.ON = 0;   // Stop timer
