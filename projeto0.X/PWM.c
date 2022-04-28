@@ -6,9 +6,9 @@
 
 void PWMInit(void)
 {
-    TRISDbits.TRISD0 = 0;
+     TRISDbits.TRISD0 = 0;
     PORTDbits.RD0 = 1;
-    OC1CONbits.OCTSEL=0; // Timer 2 is clock source of OCM
+    
     OC1CONbits.OCM=6;
     OC1CONbits.ON = 0;
     OC1CONbits.OC32 = 0;
