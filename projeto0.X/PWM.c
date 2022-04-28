@@ -14,10 +14,10 @@ void PWMInit(void)
     OC1CONbits.OC32 = 0;
     OC1RS = 0;
     OC1CONbits.ON = 1;
-      T2CONbits.TON=1; // Start the timer
+    T2CONbits.TON=1; // Start the timer
 }
 
 void setPWM(unsigned int duty)
 {
-    OC1RS=((PR2+1)*duty/100);
+    OC1RS=((PR2+1)*duty/1023);
 }

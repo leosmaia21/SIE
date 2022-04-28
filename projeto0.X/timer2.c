@@ -24,27 +24,24 @@ const uint8_t size_of_prescaler2 = 8;
 int8_t Timer2Config(uint32_t TimerFrequency)
 {
     
-    /*Variables*/
-    uint8_t i = 0;
-    uint32_t pr2 = 0;
+    TRISDbits.TRISD0 = 0;
+    PORTDbits.RD0 = 1;
+  
+    // Set timer
+    T2CONbits.ON = 0; // Stop timer
+    IPC2bits.T2IP = 2;  // Priority 2
+    T2CONbits.TCKPS = 1; //Select pre-scaler
+    T2CONbits.T32 = 0; // 16 bit timer operation
+    PR2=9999; // Compute PR value 2000 Hz
+    TMR2=0;
 
-    /*Timer T3 configuration */
-    do {
-        if (i == size_of_prescaler2)
-            return -1;
-        pr2 = (PBCLOCK / (TimerFrequency * prescaler2[i])) - 1;
-        T2CONbits.TCKPS = i;                                       /* Set prescaler3 */
-        i++;
-    } while (pr2 > UINT16_MAX);
-    
-    PR2 = (uint16_t)pr2;
-    TMR2 = 0;                                                      /* Reset timer */
-    
-    T2CONbits.ON = 0;                                              /* Stop the timer */
-    IPC2bits.T2IP = 4;                                             /* Interrupt Priority */
-    IEC0bits.T2IE = 1;                                             /* Enable T2 interrupts */
-    IFS0bits.T2IF = 0;                                             /* Reset interrupt flag */
-    T2CONbits.ON = 1;
+    // Set OC1
+    OC1CONbits.OCM = 6; // OCM = 0b110 : OC1 in PWM mode,
+    OC1CONbits.OCTSEL=0; // Timer 2 is clock source of OCM
+    OC1CONbits.ON=1;     // Enable OC1
+
+    // Start PWM generation
+    T2CONbits.TON=1; // Start the timer
     return TIMER2_SUCCESS;
 }
 
