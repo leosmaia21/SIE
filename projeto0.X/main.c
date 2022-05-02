@@ -94,7 +94,7 @@ void __ISR(_TIMER_3_VECTOR, IPL4AUTO) T3Interrupt(void) {
     value = (int*)(&ADC1BUF0);
   
     
-    int *p = (int*)(&ADC1BUF0);
+  /*  int *p = (int*)(&ADC1BUF0);
   int v = 0;
     
   int i;
@@ -102,12 +102,12 @@ void __ISR(_TIMER_3_VECTOR, IPL4AUTO) T3Interrupt(void) {
     v +=*p;
   }
 
-  v= v/16;
+  v= v/16; */
   
     for (int i = sizeof(array)/sizeof(int)-1; i > 0; i--){
         array[i]=array[i-1];
     }
-    array[0] = v;
+    array[0] = *value;
     
     sum = 0;
     
@@ -115,7 +115,7 @@ void __ISR(_TIMER_3_VECTOR, IPL4AUTO) T3Interrupt(void) {
         sum = sum + array[i];
     }
    
-    int x =sum/4;;
+    int x =sum/4; 
     setPWM(x); // configurar PWM
     //DCvalue = filterPWM(duty); // filtrar o valor DC do PWM
     IFS0bits.T3IF = 0; 
