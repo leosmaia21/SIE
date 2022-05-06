@@ -21,14 +21,10 @@ float filterPWM(int);
   int duty;
 
 
-  float res;
+float res;
 int DC;
-
 int array[4]={0, 0, 0, 0};
-
 int sum;
-  
-  
   
 volatile uint32_t *value;
   
@@ -45,13 +41,9 @@ float filterPWM(int dutycycle) {
 }
 
 
-
+ char c[3];
 int main(int argc, char **argv) {
      
-    
-  
-
-  
   TRISEbits.TRISE7=0;
   // Init UART and redirect tdin/stdot/stderr to UART
   if (UartInit(PBCLOCK, 115200) != UART_SUCCESS) {
@@ -61,18 +53,31 @@ int main(int argc, char **argv) {
   AdcConfig();
   __XC_UART = 1; /* Redirect stdin/stdout/stderr to UART1*/
 
-  
+ 
  INTCONSET = _INTCON_MVEC_MASK;
   __builtin_enable_interrupts();
 
+  int sampling=0;
   
-  Timer3Config(500);
+  printf("Insira a freq de amostragem: ");
+  for (int i=0;i<=2;i++){
+      while(!U1STAbits.URXDA);
+      c[i]=GetChar();
+      printf("%d",(c[i]-'0'));
+  }
+  int first=(c[0]-'0')*100;
+  int second=(c[1]-'0')*10;
+  int third=(c[2]-'0');
+  sampling=first+second+third;
+  
+  
+  Timer3Config(sampling);
  
   Timer2Config(2000);
   PWMInit();
   
    PORTEbits.RE7 = 0;
-
+   
   while (1) {	       
    
    

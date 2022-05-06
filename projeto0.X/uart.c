@@ -108,7 +108,7 @@ int UartClose(void)
 * Overview:     Gets the data from UART RX FIFO.
 * Note:		 	None.
 ********************************************************************/
-int GetChar(uint8_t *byte)
+int GetChar()
 {
 	char dummy;
 
@@ -120,11 +120,11 @@ int GetChar(uint8_t *byte)
 
 	if(U1STAbits.URXDA)
 	{
-		*byte = U1ARXREG;		        // get data from UART RX FIFO
-		return UART_SUCCESS;
+		return U1ARXREG;		        // get data from UART RX FIFO
+		
 	}
 	
-	return UART_FAIL;
+
 }
 
 /********************************************************************
