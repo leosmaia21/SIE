@@ -17,7 +17,7 @@ void PWMInit(void)
     T2CONbits.TON = 1; // Start the timer
 }
 
-void setPWM(int duty)
+void setPWM(float duty)
 {
-    OC1RS = ((PR2 + 1) * (duty / 100));
+    OC1RS = ((PR2 + 1) * ((float)((duty / 100))));
 }

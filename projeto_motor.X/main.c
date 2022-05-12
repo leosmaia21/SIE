@@ -13,7 +13,7 @@
 
 #define SYSCLK 80000000L  // System clock frequency, in Hz
 #define PBCLOCK 40000000L // Peripheral Bus Clock frequency, in Hz
-#define KP 2.4
+#define KP 2.3
 #define SAMPLING_FREQ 10
 volatile char direction = 0;
 volatile char get_direction = 0;
@@ -22,8 +22,9 @@ volatile uint32_t count_pulses = 0;
 volatile int32_t current_rpm = 0;
 volatile int32_t error = 0;
 volatile int32_t u = 0;
-volatile int32_t ref = 30;
+volatile int32_t ref = 50;
 volatile float newDuty = 0;
+volatile uint32_t teste = 0;
 volatile char toggle = 0;
 int main(int argc, char **argv)
 {
@@ -43,9 +44,9 @@ int main(int argc, char **argv)
   __builtin_enable_interrupts();
 
   Timer2Config(20000);
-  Timer3Config(10);
+  Timer3Config(SAMPLING_FREQ);
   PWMInit();
-  setPWM(50);
+  setPWM(60);
 
   TRISEbits.TRISE8 = 1; // Set pin as input
   TRISDbits.TRISD2 = 1; // D2 as digital input
@@ -58,11 +59,8 @@ int main(int argc, char **argv)
   int x = 0;
   while (1)
   {
-    if (flagToPrint>=5)
-    {
-      printf("RPM: %d  , Ref: %d, erro: %d, newDuty: %d\r\n", current_rpm, ref, error, newDuty);
+     printf("RPM: %d  , Ref: %d, erro: %d, newDuty: %.3f, teste: %.3f\r\n", current_rpm, ref, error, newDuty, teste);
       flagToPrint = 0;
-    }
     // if(get_direction)
     //   printf("frente");
     // else
@@ -71,6 +69,8 @@ int main(int argc, char **argv)
 }
 void __ISR(24) isr_uart1(void)
 {
+  teste++;
+  printf("teste %d",teste);
   IFS0bits.U1RXIF = 0;
 }
 
@@ -94,8 +94,7 @@ void __ISR(_TIMER_3_VECTOR, IPL3AUTO) T3Interrupt(void)
   count_pulses = 0;
   error = ref - current_rpm;
   newDuty = (float)(error * KP);
-  // newDuty=(u/0.75);
-  // OC1RS = PR2 / 2 + PR2 / 2 * ((float)(u / 100));
+
   if (newDuty > 100)
   {
     newDuty = 100;
@@ -105,10 +104,11 @@ void __ISR(_TIMER_3_VECTOR, IPL3AUTO) T3Interrupt(void)
     newDuty = 0;
   }
 
-  //  setPWM(50 + newDuty);
- // OC1RS = PR2 / 2 + PR2 / 2 * ((float)newDuty / 100); // Duty-Cycle -> 50% -- 100%
+  //  setPWM(50-newDuty);
+  OC1RS = PR2 / 2 + PR2 / 2 * ((float)newDuty / 100); // Duty-Cycle -> 50% -- 100%
 
-    OC1RS = PR2 / 2 - PR2 / 2 * ((float)newDuty / 100); // Duty-Cycle -> 0% -- 50%
+  // OC1RS = PR2 / 2 - PR2 / 2 * ((float)newDuty / 100); // Duty-Cycle -> 0% -- 50%
+  // setPWM(50-newDuty);
   if (toggle == 1)
   {
     //  OC1RS = PR2 / 2 + PR2 / 2 * ((float)newDuty / 100); // Duty-Cycle -> 50% -- 100%
@@ -119,6 +119,6 @@ void __ISR(_TIMER_3_VECTOR, IPL3AUTO) T3Interrupt(void)
   } */
 
   // setPWM(newDuty);
-  flagToPrint++;
+  flagToPrint=1;
   IFS0bits.T3IF = 0;
 }

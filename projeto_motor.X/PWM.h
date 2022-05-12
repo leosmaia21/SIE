@@ -2,6 +2,6 @@
 
 
 void PWMInit(void);
-void setPWM(int duty);
+void setPWM(float duty);
 
 
