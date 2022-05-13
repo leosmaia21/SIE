@@ -1,14 +1,14 @@
-build/default/production/main.o: main.c adc.h uart.h PWM.h config_bits.h \
- timer2.h timer3.h
-
-adc.h:
-
-uart.h:
+build/default/production/main.o: main.c PWM.h adc.h config_bits.h \
+ timer2.h timer3.h uart.h
 
 PWM.h:
+
+adc.h:
 
 config_bits.h:
 
 timer2.h:
 
 timer3.h:
+
+uart.h:
