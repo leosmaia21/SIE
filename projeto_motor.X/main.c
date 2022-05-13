@@ -13,13 +13,14 @@
 
 #define SYSCLK 80000000L  // System clock frequency, in Hz
 #define PBCLOCK 40000000L // Peripheral Bus Clock frequency, in Hz
-#define KP 1.9
-#define KI 0.6
-#define SAMPLING_FREQ 10
-#define SAMPLES 8
-#define MAX_INTEGRATOR 1000
+#define KP 1.5
+#define KI 0.7
+#define SAMPLING_FREQ 15
+#define SAMPLES 4
+#define MAX_INTEGRATOR 500
+#define MAX_RPM 63.0
 
-const float h= 1/SAMPLING_FREQ;
+const float h= 1.0/SAMPLING_FREQ;
 volatile char direction = 0;
 volatile char get_direction = 0;
 volatile uint32_t count_pulses = 0;
@@ -29,11 +30,11 @@ volatile int32_t prev_error = 0.0;
 volatile float proportional = 0.0;
 volatile float integrator = 0;
 volatile float u = 0.0;
-volatile int32_t ref = 40.0;
+volatile int32_t ref = 33.0;
 volatile float newDuty = 0.0;
 volatile uint32_t flagToPrint = 0;
 volatile char toggle = 0;
-volatile char arr[SAMPLES] = {0,0,0,0,0, 0, 0, 0};
+volatile char arr[SAMPLES] = {0, 0, 0, 0};
 volatile float rpm_average = 0;
 
 float mean_filter(float new_sample) {
@@ -73,23 +74,21 @@ int main(int argc, char **argv) {
   Timer2Config(20000);
   Timer3Config(SAMPLING_FREQ);
   PWMInit();
-  setPWM(50);
+  setPWM(100);
 
   TRISEbits.TRISE8 = 1; // Set pin as input
   TRISDbits.TRISD2 = 1; // D2 as digital input
 
   /* Configuração interrupcao UART */
-  INTCONbits.INT1EP =
-      1; // Generate interrupts on {rising edge-1 falling edge - 0}
+  INTCONbits.INT1EP = 1; // Generate interrupts on {rising edge-1 falling edge - 0}
   IFS0bits.INT1IF = 0; // Reset int flag
-  IPC1bits.INT1IP =
-      5; // Set interrupt priority (1..7) *** Set equal to ilpx above
+  IPC1bits.INT1IP = 5; // Set interrupt priority (1..7) *** Set equal to ilpx above
   IEC0bits.INT1IE = 1; // Enable Int1 interrupts
   int x = 0;
   while (1) {
     if (flagToPrint >= (20000 / 4)) {
-      printf("RPM: %.1f  , Ref: %d, erro: %.1f, u: %.1f,newduty: %.1f\r\n",
-             current_rpm, ref, error, u, newDuty);
+        printf("RPM: %.1f  , Ref: %d, erro: %.1f, u: %.1f,newduty: %.1f\r\n", current_rpm, ref, error, u, newDuty);
+            
 
       // if(get_direction)
       //   printf("frente");
@@ -103,6 +102,7 @@ void __ISR(24) isr_uart1(void) { IFS0bits.U1RXIF = 0; }
 
 void __ISR(_EXTERNAL_1_VECTOR, IPL5AUTO) ExtInt1ISR(void) {
   count_pulses++;
+  //printf("countISR: %lu\n\r",count_pulses);
   // printf("pulsos: %d",count_pulses);
   if (PORTDbits.RD2)
     get_direction = 1;
@@ -119,7 +119,7 @@ void __ISR(_TIMER_3_VECTOR, IPL3AUTO) T3Interrupt(void) {
   PORTEbits.RE7 = !PORTEbits.RE7;
   current_rpm = (float)(count_pulses * 60.0 * SAMPLING_FREQ / 420.0);
   rpm_average = mean_filter(current_rpm);
-   //printf("rm: %.1f,count: %d\n\r", rpm_average, count_pulses);
+ // printf("rpm_average: %.1f,current_rpm: %.1f\n\r", rpm_average, current_rpm);
   count_pulses = 0;
   error = ref - rpm_average;
   /* proporcional*/
@@ -127,7 +127,7 @@ void __ISR(_TIMER_3_VECTOR, IPL3AUTO) T3Interrupt(void) {
 
   /* integrador*/
   // integrator += error * (1.0 / SAMPLING_FREQ);
-  integrator += (error*0.1);
+  integrator += (error*h);
   if (integrator > MAX_INTEGRATOR) {
     integrator = MAX_INTEGRATOR;
   }
@@ -158,10 +158,10 @@ void __ISR(_TIMER_3_VECTOR, IPL3AUTO) T3Interrupt(void) {
 
     // OC1RS = PR2 / 2 + PR2 / 2 * ((float)newDuty / 100); // Duty-Cycle -> 50%
     // -- 100%
-    newDuty = (69 - u) * (50.0 / 69.0);
+    newDuty = (MAX_RPM - u) * (50.0 / MAX_RPM);
     // printf("\n\r y: %d",y);
   } else {
-    newDuty = (u + 69) * (50.0 / 69.0);
+    newDuty = (u + MAX_RPM) * (50.0 / MAX_RPM);
 
     // OC1RS = PR2 / 2 - PR2 / 2 * ((float)newDuty / 100); // Duty-Cycle -> 0%
     // -- 50%
@@ -174,7 +174,7 @@ void __ISR(_TIMER_3_VECTOR, IPL3AUTO) T3Interrupt(void) {
     newDuty = 0.0;
   }
   //setPWM(newDuty);
-  //  setPWM(60);
+   //setPWM(100);
 
   // OC1RS = PR2 / 2 - PR2 / 2 * ((float)newDuty / 100); // Duty-Cycle -> 0% --
   // 50% setPWM(50-newDuty);
