@@ -3,7 +3,7 @@
 #include <xc.h>
 #include "PWM.h"
 #include <stdint.h>
-
+#include <math.h>
 void PWMInit(void)
 {
     TRISDbits.TRISD0 = 0;
@@ -18,6 +18,6 @@ void PWMInit(void)
 }
 
 void setPWM(float duty)
-{
-    OC1RS = ((PR2 + 1) * ((float)((duty / 100))));
+{  
+    OC1RS=(uint16_t)((PR2+1)*duty/100.0);
 }
