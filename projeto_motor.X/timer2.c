@@ -44,7 +44,7 @@ int8_t Timer2Config(uint32_t TimerFrequency)
     T2CONbits.ON = 0;   // Stop timer
     IFS0bits.T2IF = 0;    // Reset interrupt flag
     IPC2bits.T2IP = 4;    //set interrupt priority (1..7) *** Make sure it matches iplx in isr declaration ***
-    IEC0bits.T2IE = 1;  // Disable T3 interrupts / Enable T2 interrupt
+    IEC0bits.T2IE = 0;  // Disable T3 interrupts / Enable T2 interrupt
     T2CONbits.TON = 1;
       
     return TIMER2_SUCCESS;
