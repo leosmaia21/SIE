@@ -43,7 +43,7 @@ char stop = 0;
 float mean_filter(float new_sample);
 double time = 0;
 
-typedef enum { showAll, showOneLine, changeDirection, setRPM, showMenu, stopMotor } menu;
+typedef enum { showAll, showOneLine, changeDirection, setRPM, showMenu, stopMotor,invalid } menu;
 float mean_filter(float);
 int main(int argc, char** argv) {
     menu m = showMenu;
@@ -124,7 +124,7 @@ int main(int argc, char** argv) {
                 newDuty = 0.0;
             }
             // setPWM(100);
-            if (stop == 1 || ref < 10) {
+            if (stop == 1 || ref < 10 || ref>50) {
                 setPWM(50);
             } else {
                 setPWM(newDuty);
@@ -160,6 +160,10 @@ int main(int argc, char** argv) {
                 case stopMotor:
                     printf("\e[1;1H\e[2J");
                     printf("Motor Stopped");
+                  
+                case invalid:
+                     printf("\e[1;1H\e[2J");
+                     printf("RPM invalido");
 
                 default:
                     break;
@@ -216,8 +220,13 @@ int main(int argc, char** argv) {
                 new[countNewRPM] = x;
                 countNewRPM++;
                 if (countNewRPM == 2) {
-                    m = showOneLine;
+                  //  m = showOneLine;
                     ref = new[0] * 10 + new[1];
+                    if(ref<10 || ref>50){
+                        m=invalid;
+                    }else{
+                        m=showOneLine;
+                    }
                     countNewRPM = 0;
                 }
             }
