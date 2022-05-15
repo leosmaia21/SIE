@@ -30,8 +30,9 @@
 
 /* Define prototypes (public interface) */
 int UartInit(uint64_t pbclock, uint32_t br);
+void uart1_config(uint32_t baudrate, uint8_t databits, uint8_t parity, uint8_t stopbits);
 int UartClose(void);
-int GetChar();
+char GetChar();
 void PutChar(uint8_t txChar);
 
 #endif
