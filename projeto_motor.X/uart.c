@@ -89,8 +89,7 @@ void uart1_config(uint32_t baudrate, uint8_t databits, uint8_t parity, uint8_t s
         U1MODEbits.PDSEL = 2;
     }
 
-    if (stopbits == 1 || stopbits == 2)  // default 8 bit data, odd parity
-    {
+    if (stopbits == 1 || stopbits == 2) {
         U1MODEbits.STSEL = stopbits - 1;
     } else {
         U1MODEbits.STSEL = 1;  // default 2 stop bit

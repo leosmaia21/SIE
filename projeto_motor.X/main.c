@@ -160,10 +160,11 @@ int main(int argc, char** argv) {
                 case stopMotor:
                     printf("\e[1;1H\e[2J");
                     printf("Motor Stopped");
-                  
+                    break;
                 case invalid:
                      printf("\e[1;1H\e[2J");
                      printf("RPM invalido");
+                     break;
 
                 default:
                     break;
@@ -254,7 +255,7 @@ void __ISR(_EXTERNAL_1_VECTOR, IPL2AUTO) ExtInt1ISR(void) {
     count_pulses++;
     float angle = count_pulses * 360.0 / 420;
     ang_total = ang_total + angle;
-    if (ang_total >= 360) ang_total = 0;
+    if (ang_total >= 360) {ang_total = 0;}
     // printf("countISR: %lu\n\r",count_pulses);
     //  printf("pulsos: %d",count_pulses);
     if (PORTDbits.RD2) {
