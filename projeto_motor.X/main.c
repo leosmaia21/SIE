@@ -15,11 +15,11 @@
 
 #define SYSCLK 80000000L   // System clock frequency, in Hz
 #define PBCLOCK 40000000L  // Peripheral Bus Clock frequency, in Hz
-#define KP 1.25
-#define KI 1.0
-#define SAMPLING_FREQ 10
+#define KP 1.3
+#define KI 0.9
+#define SAMPLING_FREQ 15
 #define SAMPLES 6
-#define MAX_INTEGRATOR 300
+#define MAX_INTEGRATOR 100
 #define MAX_RPM 75.0
 
 const float h = 1.0 / SAMPLING_FREQ;
@@ -227,6 +227,7 @@ int main(int argc, char** argv) {
                         m=invalid;
                     }else{
                         m=showOneLine;
+                        //integrator=0;
                     }
                     countNewRPM = 0;
                 }
