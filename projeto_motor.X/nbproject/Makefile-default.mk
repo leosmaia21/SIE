@@ -57,17 +57,17 @@ OBJECTDIR=build/${CND_CONF}/${IMAGE_TYPE}
 DISTDIR=dist/${CND_CONF}/${IMAGE_TYPE}
 
 # Source Files Quoted if spaced
-SOURCEFILES_QUOTED_IF_SPACED=PWM.c adc.c timer2.c timer3.c uart.c main.c
+SOURCEFILES_QUOTED_IF_SPACED=PWM.c adc.c timer2.c timer3.c uart.c main.c timer4.c
 
 # Object Files Quoted if spaced
-OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/PWM.o ${OBJECTDIR}/adc.o ${OBJECTDIR}/timer2.o ${OBJECTDIR}/timer3.o ${OBJECTDIR}/uart.o ${OBJECTDIR}/main.o
-POSSIBLE_DEPFILES=${OBJECTDIR}/PWM.o.d ${OBJECTDIR}/adc.o.d ${OBJECTDIR}/timer2.o.d ${OBJECTDIR}/timer3.o.d ${OBJECTDIR}/uart.o.d ${OBJECTDIR}/main.o.d
+OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/PWM.o ${OBJECTDIR}/adc.o ${OBJECTDIR}/timer2.o ${OBJECTDIR}/timer3.o ${OBJECTDIR}/uart.o ${OBJECTDIR}/main.o ${OBJECTDIR}/timer4.o
+POSSIBLE_DEPFILES=${OBJECTDIR}/PWM.o.d ${OBJECTDIR}/adc.o.d ${OBJECTDIR}/timer2.o.d ${OBJECTDIR}/timer3.o.d ${OBJECTDIR}/uart.o.d ${OBJECTDIR}/main.o.d ${OBJECTDIR}/timer4.o.d
 
 # Object Files
-OBJECTFILES=${OBJECTDIR}/PWM.o ${OBJECTDIR}/adc.o ${OBJECTDIR}/timer2.o ${OBJECTDIR}/timer3.o ${OBJECTDIR}/uart.o ${OBJECTDIR}/main.o
+OBJECTFILES=${OBJECTDIR}/PWM.o ${OBJECTDIR}/adc.o ${OBJECTDIR}/timer2.o ${OBJECTDIR}/timer3.o ${OBJECTDIR}/uart.o ${OBJECTDIR}/main.o ${OBJECTDIR}/timer4.o
 
 # Source Files
-SOURCEFILES=PWM.c adc.c timer2.c timer3.c uart.c main.c
+SOURCEFILES=PWM.c adc.c timer2.c timer3.c uart.c main.c timer4.c
 
 
 
@@ -143,6 +143,12 @@ ${OBJECTDIR}/main.o: main.c  .generated_files/flags/default/350e25e0966013f20022
 	@${RM} ${OBJECTDIR}/main.o 
 	${MP_CC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1  -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -fno-common -MP -MMD -MF "${OBJECTDIR}/main.o.d" -o ${OBJECTDIR}/main.o main.c    -DXPRJ_default=$(CND_CONF)    $(COMPARISON_BUILD)  -mdfp="${DFP_DIR}"  
 	
+${OBJECTDIR}/timer4.o: timer4.c  .generated_files/flags/default/a17e5d16effaa3131ae12d6fdc8509e5e42142e8 .generated_files/flags/default/f771c43d2b5d2a67da2c4ea3e647e16a157ee5dd
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/timer4.o.d 
+	@${RM} ${OBJECTDIR}/timer4.o 
+	${MP_CC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1  -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -fno-common -MP -MMD -MF "${OBJECTDIR}/timer4.o.d" -o ${OBJECTDIR}/timer4.o timer4.c    -DXPRJ_default=$(CND_CONF)    $(COMPARISON_BUILD)  -mdfp="${DFP_DIR}"  
+	
 else
 ${OBJECTDIR}/PWM.o: PWM.c  .generated_files/flags/default/ce459039796beb6099e432c6366511f065fc22c4 .generated_files/flags/default/f771c43d2b5d2a67da2c4ea3e647e16a157ee5dd
 	@${MKDIR} "${OBJECTDIR}" 
@@ -179,6 +185,12 @@ ${OBJECTDIR}/main.o: main.c  .generated_files/flags/default/750fcf51758e5b06d972
 	@${RM} ${OBJECTDIR}/main.o.d 
 	@${RM} ${OBJECTDIR}/main.o 
 	${MP_CC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -fno-common -MP -MMD -MF "${OBJECTDIR}/main.o.d" -o ${OBJECTDIR}/main.o main.c    -DXPRJ_default=$(CND_CONF)    $(COMPARISON_BUILD)  -mdfp="${DFP_DIR}"  
+	
+${OBJECTDIR}/timer4.o: timer4.c  .generated_files/flags/default/795de6600cacaab2e2442c5fa2f2b76da6569197 .generated_files/flags/default/f771c43d2b5d2a67da2c4ea3e647e16a157ee5dd
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/timer4.o.d 
+	@${RM} ${OBJECTDIR}/timer4.o 
+	${MP_CC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -fno-common -MP -MMD -MF "${OBJECTDIR}/timer4.o.d" -o ${OBJECTDIR}/timer4.o timer4.c    -DXPRJ_default=$(CND_CONF)    $(COMPARISON_BUILD)  -mdfp="${DFP_DIR}"  
 	
 endif
 
