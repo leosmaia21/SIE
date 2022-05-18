@@ -6,6 +6,8 @@
 #include <sys/attribs.h>
 #include <xc.h>
 
+
+
 #include "PWM.h"
 #include "adc.h"
 #include "config_bits.h"
@@ -15,9 +17,9 @@
 
 #define SYSCLK 80000000L   // System clock frequency, in Hz
 #define PBCLOCK 40000000L  // Peripheral Bus Clock frequency, in Hz
-#define KP 1.3
+#define KP 1.25
 #define KI 0.9
-#define SAMPLING_FREQ 15
+#define SAMPLING_FREQ 10
 #define SAMPLES 6
 #define MAX_INTEGRATOR 100
 #define MAX_RPM 75.0
@@ -35,7 +37,7 @@ float integrator = 0;
 int32_t u = 0;
 uint32_t ref = 0;
 float newDuty = 0.0;
-char toggle = 1;
+char toggle = 0;
 float arr[SAMPLES];
 volatile char flagFrom10hz = 0;
 volatile float ang_total = 0;
