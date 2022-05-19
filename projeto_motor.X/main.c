@@ -18,7 +18,7 @@
 #define PBCLOCK 40000000L  // Peripheral Bus Clock frequency, in Hz
 #define KP 1.1
 #define KI 0.9
-#define SAMPLING_FREQ 300
+#define SAMPLING_FREQ 250
 #define SAMPLES 20
 #define MAX_INTEGRATOR 100
 #define MAX_RPM 75.0
@@ -47,6 +47,7 @@ char show=0;
 float mean_filter(float new_sample);
 double time = 0;
 uint32_t time_perCycle = 0;
+
 const uint32_t freq_pre_scale = 40000000 / 256;
 
 typedef enum { showAll, showOneLine, changeDirection, setRPM, showMenu, stopMotor, invalid } menu;
@@ -132,7 +133,8 @@ int main(int argc, char** argv) {
                 newDuty = 0.0;
             }
              setPWM(newDuty);
-           /* if (stop == 1 || ref < 10 || ref > 50) {
+           // setPWM(100);
+            if (stop == 1 || ref < 10 || ref > 50) {
                 setPWM(50);
             } else {
                 setPWM(newDuty);
@@ -251,7 +253,7 @@ int main(int argc, char** argv) {
                     countNewRPM = 0;
                     show=1;
                 }
-            } */
+            } 
             printf("rpm: %.1f\n\r",rpm_average);
             flagFrom10hz = 0;
         }
