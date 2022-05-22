@@ -16,10 +16,9 @@
 
 #define SYSCLK 80000000L   // System clock frequency, in Hz
 #define PBCLOCK 40000000L  // Peripheral Bus Clock frequency, in Hz
-#define KP 1.1
-#define KI 0.9
-#define SAMPLING_FREQ 250
-#define SAMPLES 20
+
+#define SAMPLING_FREQ 100
+#define SAMPLES 4
 #define MAX_INTEGRATOR 100
 #define MAX_RPM 75.0
 
@@ -28,31 +27,41 @@ volatile char direction = 0;
 volatile int8_t get_direction = 0;
 volatile uint32_t count_pulses = 0;
 float current_rpm = 0.0;
-float rpm_average = 0;
-float error = 0;
-float prev_error = 0.0;
+float rpm_average = 0.0;
 float proportional = 0.0;
 float integrator = 0;
-int32_t u = 0;
-uint32_t ref = 33;
+float error = 0;
+float prev_error = 0;
+float u;
+float prevU = 0;
+float ref = 15;
 float newDuty = 0.0;
-char toggle = 0;
-float arr[SAMPLES];
+char toggle = 1;
+double arr[SAMPLES];
 volatile char flagFrom10hz = 0;
 volatile float ang_total = 0;
 char stop = 0;
-volatile uint32_t newTMR=0;
-char show=0;
+volatile uint32_t newTMR = 0;
+char show = 0;
 
 float mean_filter(float new_sample);
-double time = 0;
+volatile float time = 0.0;
 uint32_t time_perCycle = 0;
 
 const uint32_t freq_pre_scale = 40000000 / 256;
 
 typedef enum { showAll, showOneLine, changeDirection, setRPM, showMenu, stopMotor, invalid } menu;
 
+
+const float KCR = 1.9;                     // valor da aparesentacao 1.1
+//#define KI 0.9                      // valor da apreseta��o
+const float PCR = 0.025;
+
+float TI = PCR / 1.2;
+float K = KCR * 0.45;
+
 float mean_filter(float);
+
 int main(int argc, char** argv) {
     menu m = showMenu;
     memset(arr, 0.0, SAMPLES);
@@ -90,183 +99,203 @@ int main(int argc, char** argv) {
     char countNewRPM = 0;
 
     char new[2];
+    
+    float s0 = K*(1 + (h/TI));
+    float s1 = -K;
+    
+    printf("\r\n************************************************\r\n");
     while (1) {
         if (flagFrom10hz) {
             c = GetChar();
-            time += h;
-           // current_rpm = (float)(count_pulses * 60.0 * SAMPLING_FREQ / 420.0);
-            current_rpm =60.0/(((float) newTMR / freq_pre_scale) * 420.0) ;
-            rpm_average = mean_filter(current_rpm);
-          
-            // printf("rpm_average: %.1f,current_rpm:
-            // %.1f\n\r", rpm_average, current_rpm);
-            count_pulses = 0;
-            error = ref - rpm_average;
-            /* proporcional*/
-            proportional = error * KP;
-
-            /* integrador*/
-            integrator += ((0.5 * (prev_error + error)) * h);
-            prev_error = error;
-            if (integrator > MAX_INTEGRATOR) {
-                integrator = MAX_INTEGRATOR;
-            }
-
-            if (integrator < -MAX_INTEGRATOR) {
-                integrator = -MAX_INTEGRATOR;
-            }
-
-            prev_error = error;
-
-            u = round(proportional + (integrator * KI));
-
-            if (toggle) {
-                newDuty = (MAX_RPM - u) * (50.0 / MAX_RPM);
-            } else {
-                newDuty = (u + MAX_RPM) * (50.0 / MAX_RPM);
-            }
-
-            if (newDuty > 100) {
-                newDuty = 100.0;
-            }
-            if (newDuty < 0) {
-                newDuty = 0.0;
-            }
-             setPWM(newDuty);
-           // setPWM(100);
-            if (stop == 1 || ref < 10 || ref > 50) {
+         
+            //printf("s0: %.1f, s1: %.1f\r\n",s0,s1);
+            // current_rpm = (float)(count_pulses * 60.0 * SAMPLING_FREQ / 420.0);
+            if(time<0.5){
                 setPWM(50);
-            } else {
-                setPWM(newDuty);
+                newDuty = 50.0;
             }
-            switch (m) {
-                case showMenu:
-                    if(show){
-                    printf("\e[1;1H\e[2J");
-                    printf(
-                        "*-----*Motor goes Vrum Vrum!*-----*\n\r"
-                        "d - Alterar direção, r - Mudar velocidade\n\r"
-                        "s - Mostrar só o último valor ou mostrar tudo\n\r"
-                        "g - Parar ou continuar, m -  Mostrar menu\n\r");
-                    show=0;
-                    }
-                    break;
-                case showOneLine:
-                    if(show){
-                    printf("\e[1;1H\e[2J");
-                    printf(
-                        "T: %.1f, RPM:%.1f, Ref:%u, "
-                        "erro:%.1f, u: %d, Direcao:"
-                        "%d, Posicao:"
-                        "%.1f\r",
-                        time, rpm_average, ref, error, u, get_direction, ang_total);
-                    show=0;
-                    }
-                    break;
-
-                case setRPM:
-                    if(show){
-                    printf("\e[1;1H\e[2J");
-                    printf("Insira o novo RPM:");
-                    if (countNewRPM < 2) {
-                        // PutChar(new[countNewRPM]);
-                    }
-                    // m = showOneLine;
-                    show=0;
-                    }
-                    break;
-                case stopMotor:
-                    printf("\e[1;1H\e[2J");
-                    printf("Motor Stopped");
-                    break;
-                case invalid:
-                    printf("\e[1;1H\e[2J");
-                    printf("RPM invalido");
-                    break;
-
-                default:
-                    break;
-            }
-
-            switch (c) {
-                case 'd':
-                    toggle = !toggle;
-                    stop = 0;
-
-                    break;
-                case 's':
-                    show=1;
-                    if (m == showAll) {
-                        m = showOneLine;
-                    } else if (m == showOneLine) {
-                        m = showAll;
-                    } else {
-                        m = showOneLine;
-                    }
-                    stop = 0;
-
-                    break;
-                case 'v':
-                    m = showOneLine;
-                    stop = 0;
-
-                    break;
-                case 'm':
-                    show=1;
-                    m = showMenu;
-                    stop = 0;
-
-                    break;
-                case 'r':
-                    show=1;
-                    m = setRPM;
-                    countNewRPM = 0;
-                    stop = 0;
-
-                    break;
-                case 'g':
-                    if (m != stopMotor) {
-                        m = stopMotor;
-                        stop = 1;
-                    } else {
-                        integrator = 0;
-                        stop = 0;
-                        m = showOneLine;
-                    }
-                default:
-                    break;
-            }
-            if (m == setRPM && c >= '0' && c <= '9') {
-                // PutChar(c);
-                char x = c - '0';
-                new[countNewRPM] = x;
-                countNewRPM++;
-                if (countNewRPM == 2) {
-                    //  m = showOneLine;
-                    ref = new[0] * 10 + new[1];
-                    if (ref < 10 || ref > 50) {
-                        m = invalid;
-                    } else {
-                        m = showOneLine;
-                        // integrator=0;
-                    }
-                    countNewRPM = 0;
-                    show=1;
+            else
+            {
+                ref=10.0;
+                if(newTMR!=0){
+                current_rpm = 60.0 / (((double)newTMR / freq_pre_scale) * 420.0);
                 }
-            } 
-            printf("rpm: %.1f\n\r",rpm_average);
+                else{
+                    current_rpm=0;
+                }
+                rpm_average = mean_filter(current_rpm);
+                //rpm_average = current_rpm;
+
+                count_pulses = 0;
+                error = ref - rpm_average;
+                /* proporcional
+                proportional = error * K; 
+                integrator += ((0.5 * (prev_error + error)) * h);
+               // prev_error = error;
+                if (integrator > MAX_INTEGRATOR) {
+                    integrator = MAX_INTEGRATOR;
+                }
+
+                if (integrator < 0) {
+                    integrator = 0;
+                }
+                */
+
+                //u=round(proportional);
+                //u = round(proportional + (integrator *(K/TI)));
+               // printf("s0:%.1f,s1:%.1f,erro: %.1f\r\n ",s0,s1,error);
+                 //printf("prevU:%.1f,parametro2: %.1f,parametro3: %.1f,u %.1f\r\n",prevU,s0*error,s1*prev_error,u);
+                u = (s0*error) + (s1*prev_error)+prevU;
+                prevU = u;        
+                prev_error = error;
+
+               
+                if (toggle) {
+                    newDuty = (MAX_RPM - u) * (50.0 / MAX_RPM);
+                } else {
+                    newDuty = (u + MAX_RPM) * (50.0 / MAX_RPM);
+                }
+
+                if (newDuty > 100) {
+                    newDuty = 100.0;
+                }
+                if (newDuty < 0) {
+                    newDuty = 0.0;
+                }
+                //setPWM(newDuty);
+                // setPWM(100);
+               if (stop == 1 || ref < 10 || ref > 50) {
+                    setPWM(50);
+                } else {
+                    setPWM(newDuty);
+                }
+                /* switch (m) {
+                     case showMenu:
+                         if(show){
+                         printf("\e[1;1H\e[2J");
+                         printf(
+                             "*-----*Motor goes Vrum Vrum!*-----*\n\r"
+                             "d - Alterar direção, r - Mudar velocidade\n\r"
+                             "s - Mostrar só o último valor ou mostrar tudo\n\r"
+                             "g - Parar ou continuar, m -  Mostrar menu\n\r");
+                         show=0;
+                         }
+                         break;
+                     case showOneLine:
+                         if(show){
+                         printf("\e[1;1H\e[2J");
+                         printf(
+                             "T: %.1f, RPM:%.1f, Ref:%u, "
+                             "erro:%.1f, u: %d, Direcao:"
+                             "%d, Posicao:"
+                             "%.1f\r",
+                             time, rpm_average, ref, error, u, get_direction, ang_total);
+                         show=0;
+                         }
+                         break;
+
+                     case setRPM:
+                         if(show){
+                         printf("\e[1;1H\e[2J");
+                         printf("Insira o novo RPM:");
+                         if (countNewRPM < 2) {
+                             // PutChar(new[countNewRPM]);
+                         }
+                         // m = showOneLine;
+                         show=0;
+                         }
+                         break;
+                     case stopMotor:
+                         printf("\e[1;1H\e[2J");
+                         printf("Motor Stopped");
+                         break;
+                     case invalid:
+                         printf("\e[1;1H\e[2J");
+                         printf("RPM invalido");
+                         break;
+
+                     default:
+                         break;
+                 }
+                 */
+
+                switch (c) {
+                    case 'd':
+                        toggle = !toggle;
+                        stop = 0;
+
+                        break;
+                    case 's':
+                        show = 1;
+                        if (m == showAll) {
+                            m = showOneLine;
+                        } else if (m == showOneLine) {
+                            m = showAll;
+                        } else {
+                            m = showOneLine;
+                        }
+                        stop = 0;
+
+                        break;
+                    case 'v':
+                        m = showOneLine;
+                        stop = 0;
+
+                        break;
+                    case 'm':
+                        show = 1;
+                        m = showMenu;
+                        stop = 0;
+
+                        break;
+                    case 'r':
+                        show = 1;
+                        m = setRPM;
+                        countNewRPM = 0;
+                        stop = 0;
+
+                        break;
+                    case 'g':
+                        if (m != stopMotor) {
+                            m = stopMotor;
+                            stop = 1;
+                        } else {
+                            integrator = 0;
+                            stop = 0;
+                            m = showOneLine;
+                        }
+                    default:
+                        break;
+                }
+                if (m == setRPM && c >= '0' && c <= '9') {
+                    // PutChar(c);
+                    char x = c - '0';
+                    new[countNewRPM] = x;
+                    countNewRPM++;
+                    if (countNewRPM == 2) {
+                        //  m = showOneLine;
+                        ref = new[0] * 10 + new[1];
+                        if (ref < 10 || ref > 50) {
+                            m = invalid;
+                        } else {
+                            m = showOneLine;
+                            // integrator=0;
+                        }
+                        countNewRPM = 0;
+                        show = 1;
+                    }
+                }
+
+            }
+            printf("\r\n%.3f,%.1f",time,rpm_average);
+            time += h;
             flagFrom10hz = 0;
         }
-        
+
         switch (m) {
             case showAll:
                 // printf("\e[1;1H\e[2J");
-                printf(
-                    "T: %.1f, RPM:%.1f, Ref:%u, "
-                    "erro:%.1f, u: %d, Direcao:"
-                    "%d, Posicao:"
-                    "%.1f\n\r",
-                    time, rpm_average, ref, error, u, get_direction, ang_total);
+                printf("T: %.8f, RPM:%.1f\n\r", time, rpm_average);
                 break;
         }
     }
@@ -278,18 +307,25 @@ int main(int argc, char** argv) {
 
 void __ISR(_EXTERNAL_1_VECTOR, IPL2AUTO) ExtInt1ISR(void) {
     count_pulses++;
-   // current_rpm =60.0/( ((long double)(TMR4) / freq_pre_scale) * 420.0) ;
-    //long double oba= ((long double)TMR4/freq_pre_scale);
-    //printf("\n\r oba: %f",oba);n
-    newTMR=TMR4;
-    TMR4 = 0;
+   
+    // current_rpm =60.0/( ((long double)(TMR4) / freq_pre_scale) * 420.0) ;
+    // long double oba= ((long double)TMR4/freq_pre_scale);
+    // printf("\n\r oba: %f",oba);n
+    if(time<0.5){
+        newTMR=0;
+        TMR4=0;
+    }else{
+        newTMR=TMR4;
+        TMR4=0;
+    }  
+    
     float angle = count_pulses * 360.0 / 420;
 
     ang_total = ang_total + angle;
     if (ang_total >= 360) {
         ang_total = 0;
     }
-    // printf("countISR: %lu\n\r",count_pulses);
+    // printf("countItime += h;SR: %lu\n\r",count_pulses);
     //  printf("pulsos: %d",count_pulses);
     if (PORTDbits.RD2) {
         get_direction = 1;
