@@ -167,7 +167,12 @@ int main(int argc, char** argv) {
                      printf("\e[1;1H\e[2J");
                      printf("RPM invalido");
                      break;
-
+                case showAll:
+                // printf("\e[1;1H\e[2J");
+                printf(
+                    "%.1f,%.1f\n\r",
+                    time, rpm_average);
+                break;
                 default:
                     break;
             }
@@ -228,7 +233,8 @@ int main(int argc, char** argv) {
                     if(ref<10 || ref>50){
                         m=invalid;
                     }else{
-                        m=showOneLine;
+                        m=showAll;
+                        time=0;
                         //integrator=0;
                     }
                     countNewRPM = 0;
@@ -237,14 +243,7 @@ int main(int argc, char** argv) {
             flagFrom10hz = 0;
         }
         switch (m) {
-            case showAll:
-                // printf("\e[1;1H\e[2J");
-                printf(
-                    "T: %.1f, RPM:%.1f, Ref:%u, "
-                    "erro:%.1f, u: %d, Direcao:"
-                    "%d, Posicao:"
-                    "%.1f\n\r",
-                    time, rpm_average, ref, error, u, get_direction, ang_total);
+            
                 break;
         }
     }
