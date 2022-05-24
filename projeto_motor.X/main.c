@@ -16,6 +16,8 @@
 
 #define SYSCLK 80000000L   // System clock frequency, in Hz
 #define PBCLOCK 40000000L  // Peripheral Bus Clock frequency, in Hz
+#define KP 1.2
+#define KI 0.9
 
 #define SAMPLING_FREQ 100
 #define SAMPLES 4
@@ -54,7 +56,7 @@ typedef enum { showAll, showOneLine, changeDirection, setRPM, showMenu, stopMoto
 
 
 const float KCR = 1.9;                     // valor da aparesentacao 1.1
-//#define KI 0.9                      // valor da apresetação
+//#define KI 0.9                      // valor da apresetaï¿½ï¿½o
 const float PCR = 0.025;
 
 float TI = PCR / 1.2;
@@ -116,7 +118,7 @@ int main(int argc, char** argv) {
             }
             else
             {
-                ref=10.0;
+                ref=50.0;
                 if(newTMR!=0){
                 current_rpm = 60.0 / (((double)newTMR / freq_pre_scale) * 420.0);
                 }
@@ -128,8 +130,8 @@ int main(int argc, char** argv) {
 
                 count_pulses = 0;
                 error = ref - rpm_average;
-                /* proporcional
-                proportional = error * K; 
+               
+                proportional = error * KP; 
                 integrator += ((0.5 * (prev_error + error)) * h);
                // prev_error = error;
                 if (integrator > MAX_INTEGRATOR) {
@@ -139,13 +141,13 @@ int main(int argc, char** argv) {
                 if (integrator < 0) {
                     integrator = 0;
                 }
-                */
+                
 
                 //u=round(proportional);
-                //u = round(proportional + (integrator *(K/TI)));
+                u = round(proportional + (integrator *(KI)));
                // printf("s0:%.1f,s1:%.1f,erro: %.1f\r\n ",s0,s1,error);
                  //printf("prevU:%.1f,parametro2: %.1f,parametro3: %.1f,u %.1f\r\n",prevU,s0*error,s1*prev_error,u);
-                u = (s0*error) + (s1*prev_error)+prevU;
+               // u = (s0*error) + (s1*prev_error)+prevU;
                 prevU = u;        
                 prev_error = error;
 
@@ -169,7 +171,7 @@ int main(int argc, char** argv) {
                 } else {
                     setPWM(newDuty);
                 }
-                /* switch (m) {
+                 switch (m) {
                      case showMenu:
                          if(show){
                          printf("\e[1;1H\e[2J");
@@ -217,7 +219,7 @@ int main(int argc, char** argv) {
                      default:
                          break;
                  }
-                 */
+                 
 
                 switch (c) {
                     case 'd':
